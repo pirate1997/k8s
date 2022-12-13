@@ -1,0 +1,38 @@
+---
+- hosts: all
+  gather_facts: False
+  tasks:
+      - name: uninstall k8s
+        shell: |
+          kubeadm reset -f
+          systemctl stop kubelet
+          systemctl disable kubelet
+          yum -y remove kubeadm* kubectl* kubelet* 
+          yum remove -y kubeadm kubectl kubelet kubernetes-cni kube*
+          modprobe -r ipip
+          lsmod
+          rm -rf ~/.kube/
+          rm -rf /etc/kubernetes/
+          rm -rf /etc/systemd/system/kubelet.service.d
+          rm -rf /etc/systemd/system/kubelet.service
+          rm -rf /etc/systemd/system/kube*
+          rm -rf /etc/cni
+          rm -rf /usr/bin/kube*
+          rm -rf /opt/cni
+          rm -rf /var/lib/etcd
+          rm -rf /var/etcd
+          rm -rf /var/lib/kube*
+          ifconfig cni0 down
+          ip link delete cni0
+          ifconfig flannel.1 down
+          ip link delete flannel.1
+          rm -rf /var/lib/cni
+          rm -rf /etc/cni/net.d
+          iptables -F
+        register: rst
+
+      - name: command result
+        debug:
+          msg: "{{rst.stdout_lines}}"
+
+
