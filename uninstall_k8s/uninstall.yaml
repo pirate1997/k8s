@@ -29,6 +29,7 @@
           rm -rf /var/lib/cni
           rm -rf /etc/cni/net.d
           iptables -F
+          docker rmi -f $(docker images -q)
         register: rst
 
       - name: command result
