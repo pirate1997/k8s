@@ -1,0 +1,7 @@
+// 创建cni0设备，指定类型为网桥
+ip link add cni0 type bridge
+ip link set dev cni0 up
+// 为cni0设置ip地址，这个地址是pod的网关地址，需要和flannel.1对应网段
+ifconfig cni0 172.28.0.1/25
+// 为cni0设置mtu为1450
+ifconfig cni0 mtu 1450 up

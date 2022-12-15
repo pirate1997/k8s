@@ -1,0 +1,22 @@
+##创建deploymen
+kubectl create deployment demoapp --image=ikubernetes/demoapp:v1.0 --replicas=2
+kubectl delete deployment demoapp
+kubectl get pod -A -o wide
+
+##创建SERVICE
+
+
+##删除不可达路由
+ip r del unreachable 10.244.2.0/24 proto bird
+
+##查看cornds log
+kubectl logs -f coredns-c676cc86f-9bfwc -n kube-system
+
+##节点排水
+kubectl drain k8s03 --ignore-daemonsets
+kubectl get nodes
+kubectl get pod -o wide
+kubectl uncordon k8s03
+kubectl get pod -o wide
+kubectl delete pod demoapp-55c5f88dcb-nws2w
+
