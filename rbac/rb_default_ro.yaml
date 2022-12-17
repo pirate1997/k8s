@@ -1,0 +1,16 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  creationTimestamp: "2022-12-17T12:07:40Z"
+  name: my_rolebinding
+  namespace: default
+  resourceVersion: "349280"
+  uid: fe2166d7-61f9-446d-a98c-afcb716dc8f7
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: pods-reader,pods-reader2
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: User
+  name: my_user

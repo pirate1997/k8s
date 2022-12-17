@@ -1,0 +1,6 @@
+##创建pod只读账户
+kubectl create role pods-reader --verb=get,list,watch --resource=pods
+kubectl create role pods-reader --verb=get,list,watch --resource=pods -o yaml > role_default_ro.yaml
+##创建rolebinding,并关联用户my_user
+kubectl create rolebinding my_rolebinding --role=pods-reader --user=my_user -o yaml > rb_default_ro.yaml
+
