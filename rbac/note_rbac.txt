@@ -1,0 +1,147 @@
+##查看各种资源有哪些权限
+[root@k8s01 rbac]# kubectl api-resources -o wide
+NAME                              SHORTNAMES   APIVERSION                             NAMESPACED   KIND                             VERBS
+bindings                                       v1                                     true         Binding                          [create]
+
+##1. 创建role
+[root@k8s01 rbac]# kubectl create role pods-reader --verb=get,list,watch --resource=pods  -o yaml -n default > pods-reader.yaml
+[root@k8s01 rbac]# cat pods-reader.yaml 
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  creationTimestamp: "2022-12-18T06:16:16Z"
+  name: pods-reader
+  namespace: default
+  resourceVersion: "440973"
+  uid: e9b501a4-d140-48ff-b4f3-6021a0ce89b6
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  verbs:
+  - get
+  - list
+  - watch
+[root@k8s01 rbac]# vi pods-reader.yaml 
+[root@k8s01 rbac]# kubectl delete role pods-reader 
+role.rbac.authorization.k8s.io "pods-reader" deleted
+[root@k8s01 rbac]# kubectl apply -f pods-reader.yaml 
+role.rbac.authorization.k8s.io/pods-reader created
+[root@k8s01 rbac]# kubectl describe role pods-reader 
+Name:         pods-reader
+Labels:       <none>
+Annotations:  <none>
+PolicyRule:
+  Resources  Non-Resource URLs  Resource Names  Verbs
+  ---------  -----------------  --------------  -----
+  pods       []                 []              [get list watch]
+
+##2. 创建rolebinding,绑定my_useraccount
+[root@k8s01 rbac]# kubectl create rolebinding pods-reader_my_useraccount --role=pods-reader --user=my_useraccount
+rolebinding.rbac.authorization.k8s.io/pods-reader_my_useraccount created
+
+
+[root@k8s01 rbac]# kubectl get role,rolebinding
+NAME                                         CREATED AT
+role.rbac.authorization.k8s.io/pods-reader   2022-12-18T06:17:08Z
+
+NAME                                                               ROLE               AGE
+rolebinding.rbac.authorization.k8s.io/pods-reader_my_useraccount   Role/pods-reader   109s
+
+[root@k8s01 rbac]# kubectl config use-context my_useraccount@kubernetes
+Switched to context "my_useraccount@kubernetes".
+[root@k8s01 rbac]# kubectl get pods
+NAME                       READY   STATUS    RESTARTS       AGE
+alpine-bfb87d4f8-m5klg     1/1     Running   0              3d2h
+centos                     1/1     Running   1 (2d ago)     2d
+demoapp-55c5f88dcb-nqs8n   1/1     Running   0              3d1h
+demoapp-55c5f88dcb-wmcjn   1/1     Running   1 (3d2h ago)   3d3h
+
+#3.创建clusterrole
+[root@k8s01 rbac]# kubectl create clusterrole cluster-reader --verb=get,list,watch --resource=pods -o yaml --dry-run=client > cluster-reader.yaml
+[root@k8s01 rbac]# cat cluster-reader.yaml 
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  creationTimestamp: null
+  name: cluster-reader
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  verbs:
+  - get
+  - list
+  - watch
+[root@k8s01 rbac]# kubectl config use-context kubernetes-admin@kubernetes
+Switched to context "kubernetes-admin@kubernetes".
+[root@k8s01 rbac]# kubectl apply -f cluster-reader.yaml 
+clusterrole.rbac.authorization.k8s.io/cluster-reader created
+
+##4.#创建clusterrolebinding
+
+[root@k8s01 rbac]# cp -raf /root/.kube /home/admin/
+[root@k8s01 rbac]# chown admin.admin /home/admin/.kube/
+[root@k8s01 rbac]# su - admin
+[root@k8s01 rbac]# chown admin:admin /home/admin/.kube/ -R
+[root@k8s01 rbac]# su - admin
+(env_k8s) [admin@k8s01 ~]$ kubectl config view
+apiVersion: v1
+clusters:
+- cluster:
+    certificate-authority-data: DATA+OMITTED
+    server: https://192.168.0.210:6443
+  name: kubernetes
+- cluster:
+    certificate-authority-data: DATA+OMITTED
+    server: https://192.168.0.210:6443
+  name: my_cluster
+contexts:
+- context:
+    cluster: kubernetes
+    user: kubernetes-admin
+  name: kubernetes-admin@kubernetes
+- context:
+    cluster: kubernetes
+    user: my_useraccount
+  name: my_useraccount@kubernetes
+current-context: kubernetes-admin@kubernetes
+kind: Config
+preferences: {}
+users:
+- name: kubernetes-admin
+  user:
+    client-certificate-data: REDACTED
+    client-key-data: REDACTED
+- name: my_useraccount
+  user:
+    client-certificate-data: REDACTED
+    client-key-data: REDACTED
+(env_k8s) [admin@k8s01 ~]$ kubectl config use-context my_useraccount@kubernetes
+Switched to context "my_useraccount@kubernetes".
+(env_k8s) [admin@k8s01 ~]$ kubectl get pods
+NAME                       READY   STATUS    RESTARTS       AGE
+alpine-bfb87d4f8-m5klg     1/1     Running   0              3d2h
+centos                     1/1     Running   1 (2d ago)     2d
+demoapp-55c5f88dcb-nqs8n   1/1     Running   0              3d2h
+demoapp-55c5f88dcb-wmcjn   1/1     Running   1 (3d2h ago)   3d3h
+####开始创建clusterrlebinding
+[root@k8s01 rbac]# kubectl create clusterrolebinding my_account-cluster-reader --clusterrole=cluster-reader --user=my_useraccount
+clusterrolebinding.rbac.authorization.k8s.io/my_account-cluster-reader created
+
+[admin@k8s01 ~]$ kubectl get pods -n kube-system
+NAME                            READY   STATUS    RESTARTS        AGE
+coredns-c676cc86f-9bfwc         1/1     Running   21 (3d3h ago)   3d4h
+coredns-c676cc86f-lqbjl         1/1     Running   0               3d2h
+etcd-k8s01                      1/1     Running   3 (3d3h ago)    3d15h
+kube-apiserver-k8s01            1/1     Running   3 (3d3h ago)    3d15h
+kube-controller-manager-k8s01   1/1     Running   3 (3d3h ago)    3d15h
+kube-proxy-nlfsj                1/1     Running   4 (3d3h ago)    3d15h
+kube-proxy-qxpnz                1/1     Running   3 (3d3h ago)    3d15h
+kube-proxy-tttvx                1/1     Running   3 (3d3h ago)    3d14h
+kube-scheduler-k8s01            1/1     Running   4 (3d3h ago)    3d15h
+
+
+
