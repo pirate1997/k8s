@@ -1,0 +1,182 @@
+##创建service account
+kubectl create serviceaccount my-serviceaccount
+
+##创建pod只读角色
+kubectl create role pods-reader --verb=get,list,watch --resource=pods
+kubectl create role pods-reader --verb=get,list,watch --resource=pods -o yaml > role_default_ro.yaml
+
+##创建rolebinding,并关联用户my_user
+kubectl create rolebinding my_rolebinding --role=pods-reader --user=my_user -o yaml > rb_default_ro.yaml
+##获得pod的token
+kubectl exec -ti demoapp-55c5f88dcb-nqs8n -- cat /run/secrets/kubernetes.io/serviceaccount/token
+
+==========================
+##查看配置信息
+kubectl config view
+
+##创建user account
+
+1.创建私钥
+[root@k8s01 pki]# pwd
+/etc/kubernetes/pki
+[root@k8s01 pki]# (umask 077; openssl genrsa -out my_useraccount.key 2048)
+Generating RSA private key, 2048 bit long modulus
+..................................................+++
+......................................................................+++
+e is 65537 (0x10001)
+
+2. 创建证书请求文件
+subj子参数详解：
+缩写	翻译	英文对照
+C	国家名称缩写			Country Name (2 letter code)
+ST	州或省名称			State or Province Name (full name)
+L	城市或区域称			Locality Name (eg, city)
+O	组织名（或公司名）		Organization Name (eg, company)
+OU	组织单位名称（或部门名）	Organizational Unit Name (eg, section)
+CN	服务器域名/证书拥有者名称	Common Name (e.g. server FQDN or YOUR name)
+
+[root@k8s01 pki]# openssl req -new -key my_useraccount.key -out my_useraccount.csr -subj "/CN=my_useraccount"
+[root@k8s01 pki]# ls -l my_useraccount.*
+-rw-r--r--. 1 root root  899 12月 18 11:59 my_useraccount.csr
+-rw-------. 1 root root 1679 12月 18 11:50 my_useraccount.key
+
+3.签发证书
+[root@k8s01 pki]# openssl x509 -req -in my_useraccount.csr -CA ca.crt -CAkey ca.key -CA
+createserial -out my_useraccount.crt -days 3650
+Signature ok
+subject=/CN=my_useraccount
+Getting CA Private Key
+[root@k8s01 pki]# ls -l my_useraccount.*
+-rw-r--r--. 1 root root  985 12月 18 12:04 my_useraccount.crt
+-rw-r--r--. 1 root root  899 12月 18 11:59 my_useraccount.csr
+-rw-------. 1 root root 1679 12月 18 11:50 my_useraccount.key
+  //查看证书信息
+[root@k8s01 pki]# openssl x509 -in my_useraccount.crt -text -noout
+Certificate:
+    Data:
+        Version: 1 (0x0)
+        Serial Number:
+            cc:0e:a0:50:7b:0b:99:f3
+    Signature Algorithm: sha256WithRSAEncryption
+        Issuer: CN=kubernetes
+        Validity
+            Not Before: Dec 18 04:04:49 2022 GMT
+            Not After : Dec 15 04:04:49 2032 GMT
+        Subject: CN=my_useraccount
+        Subject Public Key Info:
+            Public Key Algorithm: rsaEncryption
+                Public-Key: (2048 bit)
+                Modulus:
+                    00:e2:7e:5b:89:b6:12:66:9b:7c:9c:8d:4a:7c:12:
+                    6a:f9:da:b1:e4:c0:ba:e9:8e:18:48:4a:99:1d:4c:
+                    d2:95:f5:28:57:79:41:a0:38:1e:6b:22:e9:9b:f1:
+                    e5:8d:eb:f4:6a:ff:42:cf:43:37:b6:95:cc:19:4e:
+                    e8:c6:11:69:d5:b7:56:4d:55:c2:e3:7c:61:92:08:
+                    dc:06:56:d8:b4:cb:46:80:57:f4:03:2a:e5:3b:4a:
+                    dd:0e:49:e9:a8:86:5c:91:fa:20:1b:21:d5:c7:1d:
+                    21:f0:bb:34:a1:95:b4:1c:70:43:9b:bf:b3:86:01:
+                    44:a6:6a:c0:41:ca:83:ec:b5:6b:18:d7:27:55:9e:
+                    b0:57:5d:70:be:b3:91:2c:22:76:21:80:7c:60:50:
+                    a6:21:1b:95:1f:77:6c:cf:a6:45:3d:51:ef:ff:71:
+                    40:5d:ad:b5:5a:7b:1d:84:d8:4f:13:e3:f9:5c:9b:
+                    d0:ce:de:d4:7a:9d:5a:a9:76:50:b2:b5:ad:fa:0c:
+                    47:26:65:41:22:28:74:cb:14:c6:ff:e5:e3:28:8b:
+                    09:57:bd:4e:db:f8:97:36:e2:19:b0:df:67:ed:68:
+                    e7:ce:23:29:0c:06:c8:fb:5a:b6:02:5e:12:71:5c:
+                    62:08:49:68:f8:8f:1b:33:98:f7:20:76:9c:b5:6b:
+                    be:7b
+                Exponent: 65537 (0x10001)
+    Signature Algorithm: sha256WithRSAEncryption
+         32:cc:b0:b7:d4:3b:a5:c8:60:77:5d:71:5e:67:df:c5:e8:46:
+         05:b1:20:86:76:72:9d:68:ff:1e:5a:87:ad:88:3b:ed:f3:4c:
+         8c:a1:ab:41:80:6d:0a:55:51:7b:01:bf:95:a9:12:d2:72:44:
+         5a:a0:a3:fa:eb:df:24:6b:88:31:8b:17:07:f5:cd:97:18:1a:
+         29:79:b0:b6:ac:7f:ce:78:dd:5c:be:cf:fb:54:68:1a:60:a5:
+         d2:66:2a:38:a8:3c:0b:d5:7a:fe:74:6c:ae:4e:95:f2:7b:12:
+         0a:32:cf:b1:bc:d4:fb:a8:f8:ba:52:81:25:60:3c:6e:a5:f1:
+         c0:a8:a3:59:ed:c7:a6:11:13:2f:a2:4b:49:c6:5b:87:53:4b:
+         5d:18:84:1b:97:3e:7f:0c:2c:6e:8f:38:0c:4c:6c:66:67:65:
+         f3:ec:15:9a:62:91:56:b3:43:18:2e:55:50:c9:76:4e:5c:b2:
+         6b:24:e2:45:b7:6e:12:c3:e6:be:08:3c:12:14:a0:89:de:4e:
+         8b:53:d7:1d:c9:97:7b:51:4a:48:db:29:87:e0:dd:86:14:24:
+         89:09:0a:f0:16:03:b3:cf:06:69:28:d6:1c:03:66:35:20:1d:
+         76:1b:de:3c:ed:4a:c4:41:94:6e:50:8a:9d:41:6a:15:f3:fd:
+         1b:74:de:d6
+[root@k8s01 pki]# 
+
+4. 创建配置文件凭证
+[root@k8s01 pki]# kubectl config set-credentials my_useraccount --client-certificate=my_useraccount.crt --client-key my_useraccount.key --embed-certs=true
+User "my_useraccount" set.
+[root@k8s01 pki]# kubectl config view
+apiVersion: v1
+clusters:
+- cluster:
+    certificate-authority-data: DATA+OMITTED
+    server: https://192.168.0.210:6443
+  name: kubernetes
+contexts:
+- context:
+    cluster: kubernetes
+    user: kubernetes-admin
+  name: kubernetes-admin@kubernetes
+current-context: kubernetes-admin@kubernetes
+kind: Config
+preferences: {}
+users:
+- name: kubernetes-admin
+  user:
+    client-certificate-data: REDACTED
+    client-key-data: REDACTED
+- name: my_useraccount
+  user:
+    client-certificate-data: REDACTED
+    client-key-data: REDACTED
+
+5. 设置上下文
+[root@k8s01 pki]# kubectl config set-context my_useraccount@kubernetes --cluster=kubernetes --user=my_useraccount 
+Context "my_useraccount@kubernetes" created.
+
+6. 切换上下文，并验证登录
+[root@k8s01 pki]# kubectl config use-context my_useraccount@kubernetes
+Switched to context "my_useraccount@kubernetes".
+
+[root@k8s01 .kube]# kubectl config use-context my_useraccount@kubernetes
+Switched to context "my_useraccount@kubernetes".
+[root@k8s01 .kube]# kubectl get ns
+Error from server (Forbidden): namespaces is forbidden: User "my_useraccount" cannot list resource "namespaces" in API group "" at the cluster scope
+
+
+7.如果有必要可以设置新集群
+[root@k8s01 .kube]# kubectl config set-cluster my_cluster --server="https://192.168.0.210:6443" --certificate-authority=/etc/kubernetes/pki/ca.crt --embed-certs=true
+Cluster "my_cluster" set.
+[root@k8s01 .kube]# kubectl config view
+apiVersion: v1
+clusters:
+- cluster:
+    certificate-authority-data: DATA+OMITTED
+    server: https://192.168.0.210:6443
+  name: kubernetes
+- cluster:
+    certificate-authority-data: DATA+OMITTED
+    server: https://192.168.0.210:6443
+  name: my_cluster
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
