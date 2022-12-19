@@ -1,0 +1,97 @@
+Dashboard:
+1、部署:
+Rubectl apply -f https://raw.githubusercontent.com/coreos/fLannet/master /Documentation/kube-flannel.yml
+
+2、
+将Service改为NodePort
+kubectl patch svc kubernetes-dashboard -p '{"spec":{"type":"NodePort"}}' -n kube-system
+
+3、认证:
+认证时的账号必须为ServiceAccount：被dashboard pod拿来由kubernetes进行认证;
+token :
+	(1）创建ServiceAccount，根据其管理目标，使用roLebinding或cLusterrolebinding绑定至合理roLe或cLusterroLe;
+	(2）获取到此ServiceAccount的secret，查看secret的详细信息，其中就有token;
+
+kubeconfig:
+  把ServiceAccount的token封装为kubeconfig文件
+	(1）创建ServiceAccount，根据其管理目标，使用rolebinding或cLusterrotebinding绑定至合理roLe或cLusterrole；
+	(2)kubectl get secret | awk'/^ServiceAccount/{print $1}
+	KUB_TOKEN=$(Kubectt get secret SERVICEACCOUNT_SECRET_NAME  -o jsonpath={.data.token} | base64 -d)
+	(3）生成kupeconf,ig文件
+	kubectl config set-cluster --kubeconfig=/PATH/TO/SOMEFILE
+	kubectl config set-credentials NANE --token=$KUBE_TOKEN --kubeconfig=/PATH/T0/SOMEFILE
+	kubectl config set-context
+	kubectl config use-context
+
+==================================
+1. 应用dashboard.yaml
+kubectl apply -f dashboard.yml
+
+2. 创建sa和rolebinding
+kubectl describe sa admin-cluster -n kubernetes-dashboard
+
+3.查看admin-cluster的secret
+kubectl describe secret admin-cluster -n kubernetes-dashboard 
+Name:         admin-cluster-sectet
+Namespace:    kubernetes-dashboard
+Labels:       <none>
+Annotations:  kubernetes.io/service-account.name: admin-cluster
+              kubernetes.io/service-account.uid: 0ace2efb-6437-475a-ad7d-7c4f2b06526d
+
+Type:  kubernetes.io/service-account-token
+
+Data
+====
+ca.crt:     1099 bytes
+namespace:  20 bytes
+token:      eyJhbGciOiJSUzI1NiIsImtpZCI6ImNlZ2RmblVyZlRkZVcxN0dzbmotNW9FR1VaOUx2T1NlellmR2QyeG9oZncifQ.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJrdWJlcm5ldGVzLWRhc2hib2FyZCIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VjcmV0Lm5hbWUiOiJhZG1pbi1jbHVzdGVyLXNlY3RldCIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VydmljZS1hY2NvdW50Lm5hbWUiOiJhZG1pbi1jbHVzdGVyIiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZXJ2aWNlLWFjY291bnQudWlkIjoiMGFjZTJlZmItNjQzNy00NzVhLWFkN2QtN2M0ZjJiMDY1MjZkIiwic3ViIjoic3lzdGVtOnNlcnZpY2VhY2NvdW50Omt1YmVybmV0ZXMtZGFzaGJvYXJkOmFkbWluLWNsdXN0ZXIifQ.l1i-jgWf46pqLx0HLZpHdZd_vzfhbfga_8vZnUcdgAq54wG2HBTZcJNJI-aQ_gViQpIQ-Mp901546uMzZRR91TQeHuroxxD7LemF9LG6kYDpKcln128gJRtp4TiSspzZLoxrkuDXILX8OuGwj2htZ_WxnD8d4wVvuPtXKUy9otqrANoK8E3pB7fixVlMbN_czGF4JWs6sIt548r_63OM2kNQ2MfvGuq9_ehBBOap8Q_R1U7zlRnhpTdQOslSLsOR806Yvl59EnMeebhcBl7qscPGakjJxIRSp1kieh1K6AK6us1vixVvv5SnFlZVpDTmeH6BmeaVeP6sUphaqMSQWw
+
+4.创建其他命名空间管理员
+
+sed 's/ns1/ns2/g' admin-ns1.yaml > admin-ns2.yaml
+sed 's/ns1/ns3/g' admin-ns1.yaml > admin-ns3.yaml
+kubectl apply -f admin-ns2.yaml 
+kubectl apply -f admin-ns3.yaml 
+
+5. 获得secret token登录系统
+
+[root@k8s01 dashboard]# kubectl get svc -n kubernetes-dashboard 
+NAME                        TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)         AGE
+dashboard-metrics-scraper   ClusterIP   10.102.72.113   <none>        8000/TCP        66m
+kubernetes-dashboard        NodePort    10.103.38.87    <none>        443:30001/TCP   66m
+[root@k8s01 dashboard]# https://124.90.43.11:9003/
+
+[root@k8s01 dashboard]# kubectl describe secrets -n ns3
+Name:         admin-ns3-secret
+Namespace:    ns3
+Labels:       <none>
+Annotations:  kubernetes.io/service-account.name: admin-ns3
+              kubernetes.io/service-account.uid: ff6092db-6ae1-47a4-b3a1-d0ea0963b3d1
+
+Type:  kubernetes.io/service-account-token
+
+Data
+====
+ca.crt:     1099 bytes
+namespace:  3 bytes
+token:      eyJhbGciOiJSUzI1NiIsImtpZCI6ImNlZ2RmblVyZlRkZVcxN0dzbmotNW9FR1VaOUx2T1NlellmR2QyeG9oZncifQ.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJuczMiLCJrdWJlcm5ldGVzLmlvL3NlcnZpY2VhY2NvdW50L3NlY3JldC5uYW1lIjoiYWRtaW4tbnMzLXNlY3JldCIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VydmljZS1hY2NvdW50Lm5hbWUiOiJhZG1pbi1uczMiLCJrdWJlcm5ldGVzLmlvL3NlcnZpY2VhY2NvdW50L3NlcnZpY2UtYWNjb3VudC51aWQiOiJmZjYwOTJkYi02YWUxLTQ3YTQtYjNhMS1kMGVhMDk2M2IzZDEiLCJzdWIiOiJzeXN0ZW06c2VydmljZWFjY291bnQ6bnMzOmFkbWluLW5zMyJ9.Nt6mEMrv05HfTxuuQzuWnFT3OhQ7e2vVhuvE-tfJsFlBCDVoy3HpTiWxmUoaGz9UvVsngbbFwfEMp4EeXxGQBDgcxFrJe5MV6P89LmREEt-l8nTV_eIAGl-u4bLuB5z5lZTL0QVykhRZZ87f2a_h1EsYVdeLbTqjn796Zey-mLQI3R7ctZVyP-0xPPF7mydPW92_tUKRqlDsfsScoGSqTVNqF-iFZNRQB5iWuCHtx7JZ_J8AQNeYeA1m7er6dcya93f1vpwIahxsjCVZ5r7aBBD_-Fl4kNlST4V8sABRRWLEvAuQY6gRL_4s-4f64zeNL5oiPX3FwSDHPLcuCMrGvQ
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

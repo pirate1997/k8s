@@ -127,6 +127,7 @@ alpine-bfb87d4f8-m5klg     1/1     Running   0              3d2h
 centos                     1/1     Running   1 (2d ago)     2d
 demoapp-55c5f88dcb-nqs8n   1/1     Running   0              3d2h
 demoapp-55c5f88dcb-wmcjn   1/1     Running   1 (3d2h ago)   3d3h
+
 ####开始创建clusterrlebinding
 [root@k8s01 rbac]# kubectl create clusterrolebinding my_account-cluster-reader --clusterrole=cluster-reader --user=my_useraccount
 clusterrolebinding.rbac.authorization.k8s.io/my_account-cluster-reader created
@@ -142,6 +143,10 @@ kube-proxy-nlfsj                1/1     Running   4 (3d3h ago)    3d15h
 kube-proxy-qxpnz                1/1     Running   3 (3d3h ago)    3d15h
 kube-proxy-tttvx                1/1     Running   3 (3d3h ago)    3d14h
 kube-scheduler-k8s01            1/1     Running   4 (3d3h ago)    3d15h
+
+##创建名称空间管理员
+[root@k8s01 rbac]# kubectl create rolebinding default-ns-admin --clusterrole=admin --user=my_useraccount
+rolebinding.rbac.authorization.k8s.io/default-ns-admin created
 
 
 
