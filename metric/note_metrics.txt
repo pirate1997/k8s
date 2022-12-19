@@ -1,0 +1,12 @@
+1. 下载metrics-server
+wget https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+
+2. 调整启动参数
+增加- --kubelet-insecure-tls
+重新apply
+
+3.启动代理
+kubectl proxy
+
+4. 访问metrics-server
+curl -k http://localhost:8001/apis/metrics.k8s.io/v1beta1/nodes

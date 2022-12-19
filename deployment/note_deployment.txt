@@ -1,0 +1,17 @@
+1. 命令行创建deployment
+kubectl create deployment demoapp --image=ikubernetes/demoapp:v1.0 --replicas=3
+
+2.声明式创建deployment
+[root@k8s01 deployment]# kubectl delete deployment demoapp -n ns1
+deployment.apps "demoapp" deleted
+[root@k8s01 deployment]# kubectl delete deployment demoapp -n ns2
+deployment.apps "demoapp" deleted
+[root@k8s01 deployment]# kubectl delete deployment demoapp -n ns3
+deployment.apps "demoapp" deleted
+[root@k8s01 deployment]# kubectl apply -f deployment_demoapp.yaml -n ns1
+deployment.apps/demoapp created
+[root@k8s01 deployment]# kubectl apply -f deployment_demoapp.yaml -n ns3
+deployment.apps/demoapp created
+[root@k8s01 deployment]# kubectl apply -f deployment_demoapp.yaml -n ns2
+deployment.apps/demoapp created
+
