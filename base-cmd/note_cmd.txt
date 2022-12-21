@@ -1,0 +1,92 @@
+1. 运行一个pod
+kubectl run nginx --image=nginx --port=80
+[root@k8s01 base-cmd]# kubectl get pods --show-labels 
+NAME                       READY   STATUS    RESTARTS       AGE    LABELS
+alpine-bfb87d4f8-m5klg     1/1     Running   1 (153m ago)   5d4h   app=alpine,pod-template-hash=bfb87d4f8
+demoapp-7744499f9b-554r9   1/1     Running   1 (153m ago)   26h    app=demoapp,pod-template-hash=7744499f9b
+demoapp-7744499f9b-j9cdl   1/1     Running   1 (153m ago)   26h    app=demoapp,pod-template-hash=7744499f9b
+nginx                      1/1     Running   0              69m    run=nginx
+
+
+2. 暴露一个pod为服务
+kubectl expose pod nginx --name nginx-service --port=80 --target-port=80 --protocol=TCP
+
+[root@k8s01 base-cmd]# kubectl get svc nginx-service
+NAME            TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)   AGE
+nginx-service   ClusterIP   10.105.207.252   <none>        80/TCP    64s
+
+3.启动客户端
+kubectl run client --image=busybox -it --restart=Never --rm
+
+4. node节点上解析服务域名
+[root@k8s01 base-cmd]# dig -t A nginx-service.default.svc.cluster.local @10.96.0.10
+
+; <<>> DiG 9.11.4-P2-RedHat-9.11.4-26.P2.el7_9.10 <<>> -t A nginx-service.default.svc.cluster.local @10.96.0.10
+;; global options: +cmd
+;; Got answer:
+;; WARNING: .local is reserved for Multicast DNS
+;; You are currently testing what happens when an mDNS query is leaked to DNS
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 57709
+;; flags: qr aa rd; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
+;; WARNING: recursion requested but not available
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 4096
+;; QUESTION SECTION:
+;nginx-service.default.svc.cluster.local. IN A
+
+;; ANSWER SECTION:
+nginx-service.default.svc.cluster.local. 30 IN A 10.105.207.252
+
+;; Query time: 1 msec
+;; SERVER: 10.96.0.10#53(10.96.0.10)
+;; WHEN: 二 12月 20 16:22:58 CST 2022
+;; MSG SIZE  rcvd: 123
+[root@k8s01 base-cmd]# dig -t A nginx-service.default.svc.cluster.local @10.96.0.10 +short
+10.105.207.252
+
+5.命令行方式创建deployment
+[root@k8s01 base-cmd]# kubectl create deployment myapp --image=ikubernetes/myapp:v1 --replicas=2
+deployment.apps/myapp created
+[root@k8s01 base-cmd]# kubectl get deployments.apps myapp -o wide
+NAME    READY   UP-TO-DATE   AVAILABLE   AGE   CONTAINERS   IMAGES                 SELECTOR
+myapp   2/2     2            2           25s   myapp        ikubernetes/myapp:v1   app=myapp
+[root@k8s01 base-cmd]# kubectl expose deployment myapp --name=myapp --port=80
+service/myapp exposed
+[root@k8s01 base-cmd]# kubectl get svc myapp -o wide
+NAME    TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)   AGE   SELECTOR
+myapp   ClusterIP   10.103.179.48   <none>        80/TCP    12s   app=myapp
+[root@k8s01 base-cmd]# curl 10.103.179.48
+Hello MyApp | Version: v1 | <a href="hostname.html">Pod Name</a>
+
+6.扩展容器数量
+[root@k8s01 base-cmd]# kubectl scale --replicas=3 deployment myapp
+deployment.apps/myapp scaled
+
+7. 升级myapp
+[root@k8s01 base-cmd]# kubectl set image  deployment myapp myapp=ikubernetes/myapp:v2
+deployment.apps/myapp image updated
+[root@k8s01 base-cmd]# kubectl rollout status deployment myapp
+deployment "myapp" successfully rolled out
+
+8.回滚到上一个版本
+[root@k8s01 base-cmd]# kubectl rollout undo deployment myapp
+deployment.apps/myapp rolled back
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
