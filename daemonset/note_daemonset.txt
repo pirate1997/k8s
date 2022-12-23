@@ -1,0 +1,3 @@
+1.命令行创建service，输出redis服务
+[root@k8s01 daemonset]# kubectl expose deployment redis --port=6379
+service/redis expose

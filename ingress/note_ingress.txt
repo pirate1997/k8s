@@ -1,0 +1,22 @@
+创建https服务
+1.创建私有key
+  openssl genrsa -out tls.key 2048
+
+2.自签证书
+  openssl req -new -x509 -key tls.key -out tls.crt -subj /C=CN/ST=BeiJing/L=Beijing/O=devops/CN=a.kk.com
+
+3.创建资源对象secret
+  kubectl create secret tls myapp-ingress-secret --cert=tls.crt --key=tls.key 
+  kubectl get secrets 
+  kubectl describe secret myapp-ingress-secret
+
+4.创建tls类型ingress
+  cp ingress-myapp.yaml ingress-myapp-tls.yaml 
+  ingress-myapp-tls.yaml 
+
+5.测试https服务
+┌──(kali㉿kali)-[~]
+└─$ curl https://a.kk.com:30948 -k
+Hello MyApp | Version: v2 | <a href="hostname.html">Pod Name</a>
+      
+

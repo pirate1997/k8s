@@ -1,0 +1,67 @@
+1.给POD加label，如果和其他控制器label重名，那么可能会被杀掉
+[root@k8s01 ~]# kubectl label pod pod-demo --overwrite app=rs-myapp environment=qa release=canary
+pod/pod-demo not labeled
+[root@k8s01 ~]# kubectl get pod --show-labels
+NAME                       READY   STATUS    RESTARTS      AGE    LABELS
+alpine-bfb87d4f8-m5klg     1/1     Running   1 (24h ago)   6d2h   app=alpine,pod-template-hash=bfb87d4f8
+demoapp-7744499f9b-j9cdl   1/1     Running   1 (24h ago)   2d     app=demoapp,pod-template-hash=7744499f9b
+myapp-6f8c7498f4-qw2j8     1/1     Running   0             20h    app=myapp,pod-template-hash=6f8c7498f4
+nginx                      1/1     Running   0             23h    run=nginx
+pod-demo                   2/2     Running   0             16h    app=rs-myapp,environment=qa,release=canary,tier=frontend
+rs-myapp-4zvt7             1/1     Running   0             17m    app=rs-myapp,environment=qa,release=canary
+[root@k8s01 ~]# 
+
+[root@k8s01 ~]# kubectl delete pod pod-demo
+pod "pod-demo" deleted
+
+[root@k8s01 ~]# 
+[root@k8s01 ~]# kubectl get pod --show-labels
+NAME                       READY   STATUS    RESTARTS      AGE    LABELS
+alpine-bfb87d4f8-m5klg     1/1     Running   1 (24h ago)   6d2h   app=alpine,pod-template-hash=bfb87d4f8
+demoapp-7744499f9b-j9cdl   1/1     Running   1 (24h ago)   2d     app=demoapp,pod-template-hash=7744499f9b
+myapp-6f8c7498f4-qw2j8     1/1     Running   0             20h    app=myapp,pod-template-hash=6f8c7498f4
+nginx                      1/1     Running   0             23h    run=nginx
+rs-myapp-4zvt7             1/1     Running   0             20m    app=rs-myapp,environment=qa,release=canary
+rs-myapp-xpr2x             1/1     Running   0             35s    app=rs-myapp,environment=qa,release=canary
+
+2.带标签查看pod
+[root@k8s01 ~]# kubectl get pod -l app=dep-app,release=canary --show-labels
+NAME                                READY   STATUS    RESTARTS   AGE   LABELS
+deployment-myapp-856fc465b5-9ktfw   1/1     Running   0          42m   app=dep-app,pod-template-hash=856fc465b5,release=canary
+deployment-myapp-856fc465b5-w2g5r   1/1     Running   0          42m   app=dep-app,pod-template-hash=856fc465b5,release=canary
+
+3.apply后查看pod更新情况
+[root@k8s01 manifest]# kubectl get pod -l app=dep-app,release=canary -w
+NAME                                READY   STATUS    RESTARTS   AGE
+deployment-myapp-6bc79785bb-4xlj5   1/1     Running   0          5m54s
+deployment-myapp-6bc79785bb-9m929   1/1     Running   0          5m52s
+deployment-myapp-995559c7c-vp4tv    0/1     Pending   0          0s
+deployment-myapp-995559c7c-vp4tv    0/1     Pending   0          0s
+deployment-myapp-995559c7c-vp4tv    0/1     ContainerCreating   0          0s
+deployment-myapp-995559c7c-vp4tv    0/1     ErrImagePull        0          57s
+deployment-myapp-995559c7c-vp4tv    0/1     ImagePullBackOff    0          68s
+deployment-myapp-995559c7c-vp4tv    0/1     Terminating         0          73s
+deployment-myapp-995559c7c-vp4tv    0/1     Terminating         0          2m2s
+deployment-myapp-995559c7c-vp4tv    0/1     Terminating         0          2m3s
+deployment-myapp-995559c7c-vp4tv    0/1     Terminating         0          2m3s
+4. patch更新
+[root@k8s01 manifest]# kubectpatch deployments.apps deployment-myapp -p '{"spec":{"replicas": 10}}'
+deployment.apps/deployment-myapp patched
+
+5.金丝雀发布
+[root@k8s01 manifest]# kubectl set image deployment  deployment-myapp deployment-pod-myapp=ikubernetes/ikubernetes:v1 && kubectl rollout  pause deployment deployment-myapp 
+deployment.apps/deployment-myapp image updated
+deployment.apps/deployment-myapp paused
+
+[root@k8s01 manifest]# kubectl rollout status deployment deployment-myapp 
+Waiting for deployment "deployment-myapp" rollout to finish: 3 out of 5 new replicas have been updated...
+
+[root@k8s01 manifest]# kubectl get pod -l app=dep-app,release=canary -w
+NAME                                READY   STATUS    RESTARTS   AGE
+deployment-myapp-6bc79785bb-dght4   1/1     Running   0          18m
+
+6.回退到指定版本
+kubectl rollout undo deployment deployment-myapp --to-revision=12
+
+
+

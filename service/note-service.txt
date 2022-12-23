@@ -1,0 +1,13 @@
+Service
+  工作模式：userspace，iptables，ipvs
+  userspace: 1.工
+  iptables：1.10-
+  ipvs：1.11+
+类型:
+  ExternalName，CLusterIP，NodePort，and LoadBaLancer
+资源记录
+  NAME.NS_NAME.DOMAIN.LTD.
+  svc.cluster.local
+
+1.调整会话亲和性
+kubectl patch svc myapp -p '{"spec:":{"sessionAffinity": "ClientIP"}}'
