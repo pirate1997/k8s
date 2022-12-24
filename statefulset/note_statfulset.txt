@@ -1,0 +1,12 @@
+1. pod创建后自动使用pvc关联pv，不受重启影响，删除pod后，pvc pv都不会删除
+   创建后的pod资深的hostnam会在dns注册
+[root@k8s01 statefulset]# kubectl exec -ti myapp-0 -- /bin/sh
+/ # nslookup myapp-0.svc-stateful-myapp.default.svc.cluster.local
+nslookup: can't resolve '(null)': Name does not resolve
+
+Name:      myapp-0.svc-stateful-myapp.default.svc.cluster.local
+Address 1: 10.244.2.124 myapp-0.svc-stateful-myapp.default.svc.cluster.local
+2. statefulset也支持扩容
+[root@k8s01 statefulset]# kubectl scale sts myapp --replicas=3
+statefulset.apps/myapp scaled
+
