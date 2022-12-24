@@ -1,0 +1,38 @@
+1.命令行创建configmap
+[root@k8s01 configmap]# kubectl create configmap nginx-config --from-literal=nginx_port=8080 --from-literal=server_name=myserver
+configmap/nginx-config created
+[root@k8s01 configmap]# kubectl get cm
+NAME               DATA   AGE
+kube-root-ca.crt   1      9d
+nginx-config       2      5s
+[root@k8s01 configmap]# kubectl get cm nginx-config 
+NAME           DATA   AGE
+nginx-config   2      24s
+[root@k8s01 configmap]# kubectl describe cm nginx-config 
+Name:         nginx-config
+Namespace:    default
+Labels:       <none>
+Annotations:  <none>
+
+Data
+====
+nginx_port:
+----
+8080
+server_name:
+----
+myserver
+
+BinaryData
+====
+
+Events:  <none>
+[root@k8s01 configmap]# 
+
+2. 从文件创建configmap
+[root@k8s01 configmap]# kubectl create configmap cm-user-pwd --from-file=mypwd=/etc/passwd
+configmap/cm-user-pwd created
+ 挂载volume的方式见pod-cm-vol.yaml
+
+
+
