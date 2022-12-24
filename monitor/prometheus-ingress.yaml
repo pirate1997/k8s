@@ -1,0 +1,41 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  namespace: monitoring
+  name: prometheus-ingress
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: grafana.kk.com  # 访问 Grafana 域名
+    http:
+      paths:
+      - pathType: Prefix
+        path: "/"
+        backend:
+          service:
+            name: grafana
+            port:
+              number: 3000
+
+  - host: prometheus.kk.com   # 访问 Prometheus 域名
+    http:
+      paths:
+      - pathType: Prefix
+        path: "/"
+        backend:
+          service:
+            name: prometheus-k8s
+            port:
+              number: 9090
+
+  - host: alertmanager.kk.com  # 访问 alertmanager 域名
+    http:
+      paths:
+      - pathType: Prefix
+        path: "/"
+        backend:
+          service:
+            name: alertmanager-main
+            port:
+              number: 9093
+

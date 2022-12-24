@@ -1,0 +1,11 @@
+1. 通过ingress访问promethus和grafana，在客户机上加入域名映射
+192.168.0.210 a.kk.com
+192.168.0.211 b.kk.com
+192.168.0.212 c.kk.com
+192.168.0.210 grafana.kk.com  # 访问 Grafana 域名
+192.168.0.210 prometheus.kk.com   # 访问 Prometheus 域名
+192.168.0.210 alertmanager.kk.com  # 访问 alertmanager 域名
+
+2.参考
+https://blog.csdn.net/qq_43164571/article/details/124802412
+
