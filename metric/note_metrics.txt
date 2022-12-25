@@ -17,3 +17,13 @@ NAME    CPU(cores)   CPU%   MEMORY(bytes)   MEMORY%
 k8s01   187m         4%     3597Mi          22%       
 k8s02   95m          2%     1542Mi          9%        
 k8s03   75m          1%     1362Mi          8%  
+
+6.创建hpa控制器
+
+[root@k8s01 metric]# kubectl autoscale deployment demoapp-hpa --min=1 --max=8 --cpu-percent=60
+horizontalpodautoscaler.autoscaling/demoapp-hpa autoscaled
+[root@k8s01 metric]# kubectl get hpa
+NAME          REFERENCE                TARGETS         MINPODS   MAXPODS   REPLICAS   AGE
+demoapp-hpa   Deployment/demoapp-hpa   <unknown>/60%   1         8         1          19s
+
+

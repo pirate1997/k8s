@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{.Release.Name}}-configmap
+  namespace: {{.Release.Namespace}}
+data:
+  value1: "{{.Release.IsUpgrade}}"
+  value2: "{{.Release.IsInstall}}"
+  value3: "{{.Release.Revision}}"
+  value4: "{{.Release.Service}}"
+

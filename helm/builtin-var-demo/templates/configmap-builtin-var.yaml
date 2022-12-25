@@ -1,0 +1,42 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{.Release.Name}}-cm-release
+  namespace: {{.Release.Namespace}}
+data:
+  value1: "{{ .Values.name1}}"
+  value2: "{{ .Values.info.name2}}"
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{.Release.Name}}-cm-chart
+  namespace: {{.Release.Namespace}}
+data:
+  value1: "{{ .Chart.Name}}"
+  value2: "{{ .Chart.Version}}"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{.Release.Name}}-cm-cap
+  namespace: {{.Release.Namespace}}
+data:
+  value1: "{{ .Capabilities.APIVersions}}" #集群API版本信息集合
+  value2: '{{ .Capabilities.APIVersions.Has "apps/v1/Deployment"}}' #检测指定资源是否可用
+  value3: "{{ .Capabilities.KubeVersion.Version}}" #获取k8s版本号
+  value4: "{{ .Capabilities.KubeVersion.Major}}" #获取k8s主版本号
+  value5: "{{ .Capabilities.KubeVersion.Minor}}" #获取k8s小版本号
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{.Release.Name}}-cm-tpl
+  namespace: {{.Release.Namespace}}
+data:
+  value1: "{{ .Template.Name}}" #模板文件名称
+  value2: "{{ .Template.BasePath}}" #模板文件路径
+
+
+

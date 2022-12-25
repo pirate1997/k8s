@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: demoapp-hpa
+  labels:
+    app: demoapp-hpa
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: demoapp-hpa
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: demoapp-hpa
+    spec:
+      containers:
+      - image: ikubernetes/myapp:v1
+        imagePullPolicy: IfNotPresent
+        name: demoapp-hpa
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "256Mi"
+          limits:
+            cpu: "200m"
+            memory: "512Mi"

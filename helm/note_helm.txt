@@ -1,0 +1,138 @@
+1.创建chart
+[root@k8s01 helm]# helm create mychart
+Creating mychart
+2.查看部署结果
+[root@k8s01 helm]# helm list
+NAME        NAMESPACE REVISION  UPDATED                                 STATUS   CHART          APP VERSION
+myconfigmap default   1         2022-12-25 18:14:56.514626607 +0800 CST deployed mychart-0.1.0  1.16.0  
+3.获取部署内容
+[root@k8s01 helm]# helm get manifest myconfigmap
+---
+# Source: mychart/templates/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mycahrt-configmap
+data:
+  myvalue: "hello world"
+查看部署结果
+[root@k8s01 helm]# helm list
+NAME        NAMESPACE REVISION  UPDATED                                 STATUS   CHART          APP VERSION
+myconfigmap default   1         2022-12-25 18:14:56.514626607 +0800 CST deployed mychart-0.1.0  1.16.0  
+3.获取部署内容
+[root@k8s01 helm]# helm get manifest myconfigmap
+---
+# Source: mychart/templates/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mycahrt-configmap
+data:
+  myvalue: "hello world"
+查看部署结果
+[root@k8s01 helm]# helm list
+NAME        NAMESPACE REVISION  UPDATED                                 STATUS   CHART          APP VERSION
+myconfigmap default   1         2022-12-25 18:14:56.514626607 +0800 CST deployed mychart-0.1.0  1.16.0  
+3.获取部署内容
+[root@k8s01 helm]# helm get manifest myconfigmap
+---
+# Source: mychart/templates/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mycahrt-configmap
+data:
+  myvalue: "hello world"
+查看部署结果
+[root@k8s01 helm]# helm list
+NAME        NAMESPACE REVISION  UPDATED                                 STATUS   CHART          APP VERSION
+myconfigmap default   1         2022-12-25 18:14:56.514626607 +0800 CST deployed mychart-0.1.0  1.16.0  
+3.获取部署内容
+[root@k8s01 helm]# helm get manifest myconfigmap
+---
+# Source: mychart/templates/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mycahrt-configmap
+data:
+  myvalue: "hello world"
+查看部署结果
+[root@k8s01 helm]# helm list
+NAME        NAMESPACE REVISION  UPDATED                                 STATUS   CHART          APP VERSION
+myconfigmap default   1         2022-12-25 18:14:56.514626607 +0800 CST deployed mychart-0.1.0  1.16.0  
+3.获取部署内容
+[root@k8s01 helm]# helm get manifest myconfigmap
+---
+# Source: mychart/templates/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mycahrt-configmap
+data:
+  myvalue: "hello world"
+4.卸载一个部署
+[root@k8s01 helm]# helm uninstall myconfigmap
+release "myconfigmap" uninstalled
+
+5.渲染执行结果
+[root@k8s01 helm]# helm install release-var-cm ~/k8s/helm/builtin-var-demo/ --dry-run
+NAME: release-var-cm
+LAST DEPLOYED: Sun Dec 25 20:31:37 2022
+NAMESPACE: default
+STATUS: pending-install
+
+6.helm添加chart仓库和查看仓库类似yum仓库或docker仓库
+添加仓库:可以添加多个仓库，添加仓库时候，记得起个仓库名，如：stable,aliyun,或其他，一般起个稳定版的stable会优先使用
+# helm repo add stable http://mirror.azure.cn/kubernetes/charts
+#添加微软的,强烈推荐
+# helm repo add aliyun https://kubernetes.oss-cn-hangzhou.aliyuncs.com/charts #添加阿里云的
+# helm repo add test-repo http://mirror.kaiyuanshe.cn/kubernetes/charts/
+#添加开源社区的
+# helm repo list
+test-repo http://mirror.kaiyuanshe.cn/kubernetes/charts
+stable http://mirror.azure.cn/kubernetes/charts
+https://kubernetes.oSs-cn-hangzhou.aliyuncs.com/charts
+
+4,搜索远程仓库的chat包、查看chart包信息、拉取远程仓库chart包到本地
+类似docker search 搜索harbor仓库的镜像
+(1)搜索chart包格式：helm search repo chart包名
+示例:
+# helm search repo tomcat
+(2).查看chart包格式：helm show chart chart包名
+或 helm show values chart包名（查看详细信息)
+示例:
+查看chart包基础信息
+# helm show chart stable/tomcat
+apiVersion: v1
+appVersion: "7.0
+deprecated: true
+description: DEPRECATED - Deploy a basic tomcat application server with sidecar as web archive containe
+home: https://github.com/yahavb
+icon: http://tomcat.apache.org/res/images/tomcat.png
+name: tomcat
+version: 0.4.3
+
+##拉取并解压
+[root@k8s01 helm]# helm pull stable/tomcat --untar
+
+查看chart包详细信息
+# helm show values stable/tomcat
+replicaCount: 1
+image:
+webarchive
+
+5.helm通过各种类型chart包安装一个release实例名来部署k8s相关的资源（如：pod,deployment,svc,ingress等,根据模板文件定义
+1).从加入到本地的chart官方仓库(从官方仓库在线安装)安装release实例
+2).将从chart仓库拉下来的压缩包进行安装release实例（下载好的压缩包本地离线安装release）
+3).将从chart仓库拉下来的压缩包解压后，从解压目录安装release实例（解压下载好的压缩包，从解压目录离线安装release实例
+4).从一个网络地址（如http服务器）仓库压缩包直接安装release实例
+5).在本地创建一个chart包，通过自定义编辑自己的yaml文件后，通过本地chart包进行安装release实例
+#helm search repo tomcat
+#helm install tomcatl stable/tomcat
+#从加入到本地的chart社区仓库(从官方仓库在线安装)安装release实例，tomcat1为release实例名
+#helm install tomcat2 tomcat-0.4.3.tgz#从chart仓库拉下来的压缩包进行安装release实例(从本地存档文件离线安装)
+#helm install tomcat3 tomcat
+#从chart仓库拉下来的压缩包解压后，从解压目录安装release实例(从解压目录离线安装)
+#helm install db http://url../mysql-1.6.9.tgz #从一个网络地址仓库压缩包直接安装release实例(从下载服务器安装), db为release实例名
+
