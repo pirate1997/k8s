@@ -1,0 +1,2 @@
+##部署文档
+https://istio.io/latest/zh/docs/setup/getting-started/

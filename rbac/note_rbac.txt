@@ -149,4 +149,6 @@ kube-scheduler-k8s01            1/1     Running   4 (3d3h ago)    3d15h
 rolebinding.rbac.authorization.k8s.io/default-ns-admin created
 
 
-
+##serviceaccount认证  sa认证
+https://kubernetes.io/docs/concepts/configuration/secret/?spm=a2c63.p38356.0.0.41f417f9xwC1vt#service-account-token-secrets
+https://blog.csdn.net/weixin_43266367/article/details/127304422
